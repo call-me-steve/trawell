@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+node_modules
+.next
+dist
+coverage
+
+# Local infra
+docker/data
+
+# Python leftovers
+venv
+__pycache__
+

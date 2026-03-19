@@ -1,0 +1,16 @@
+{
+  "name": "@trawell/shared",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "echo \"(no lint configured)\"",
+    "format": "prettier -w ."
+  },
+  "dependencies": {
+    "zod": "^3.25.4"
+  }
+}
+
