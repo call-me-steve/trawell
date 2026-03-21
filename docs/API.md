@@ -54,9 +54,11 @@ Body:
 {
   "name": "EiffelTower",
   "center": { "lat": 48.85837, "lng": 2.29448 },
-  "radiusM": 150
+  "radiusM": 10
 }
 ```
+
+Default `radiusM` is 10. Min 1, max 50_000.
 
 ### `POST /creator/audio/init-upload`
 
@@ -109,9 +111,17 @@ Entities:
 
 ## Listener
 
+### `GET /map-items?lat=..&lng=..&radius=..`
+
+Returns published geo-audio whose geofence center is within `radius` of the point (for map markers). Default `radius` 5000. Includes: `geo_audio_id`, `title`, `description`, `radius_m`, `lat`, `lng`, `author`.
+
+### `GET /geo-audio/:id`
+
+Returns metadata for a single geo-audio (title, description, author, radius, lat, lng). No auth. 404 if not public/unlisted or not published.
+
 ### `GET /nearby?lat=..&lng=..&radius=..`
 
-Returns public geo-audio within `radius` meters of the requested point.
+Returns public geo-audio whose geofence **contains** the user (i.e. user is inside). Use for "playable" list.
 
 ### `POST /geo-audio/:id/access`
 
@@ -131,9 +141,13 @@ Returns tour metadata + ordered stops.
 
 ## Dev-only
 
-### `POST /creator/dev/seed-example`
+All dev endpoints are available only when `NODE_ENV=development`.
 
-Only available when `NODE_ENV=development`.
+### `POST /dev/seed-test-accounts`
+
+Creates test users: `creator@test.com`/creator123, `listener@test.com`/listener123. No auth. Idempotent.
+
+### `POST /creator/dev/seed-example`
 
 Body:
 
@@ -141,5 +155,9 @@ Body:
 { "lat": 48.85837, "lng": 2.29448 }
 ```
 
-Creates a tiny WAV in MinIO + inserts a geofence, geo-audio, and tour for fast local testing.
+Requires creator auth. Creates a 2s WAV, geofence (10m), geo-audio, and 1-stop tour at the given location.
+
+### `POST /creator/dev/sample-audio`
+
+Requires creator auth. Creates a 2s tone audio asset (no geofence). Returns `audioId` for use in attach flow.
 

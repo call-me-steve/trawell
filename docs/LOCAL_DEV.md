@@ -17,11 +17,19 @@ pnpm start
 
 ## Configure environment
 
-API reads env from `apps/api/.env`.
+**API** reads from `apps/api/.env`:
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 ```
+
+**Web** (optional): create `apps/web/.env.local` for Google Maps:
+
+```
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
+```
+
+Get a key at [Google Cloud Console → APIs & Credentials](https://console.cloud.google.com/apis/credentials). Enable "Maps JavaScript API". Without it, the map shows a fallback message but lat/lng inputs still work.
 
 ## Services
 
@@ -31,22 +39,28 @@ cp apps/api/.env.example apps/api/.env
 - **MinIO**: `http://localhost:9000` (S3 endpoint)
 - **MinIO console**: `http://localhost:9001` (default `minioadmin` / `minioadmin`)
 
-## Seed demo content (recommended)
+## Test accounts (dev only)
 
-The Creator UI has a button that seeds everything you need to test as a Listener:
+On the login page, click **Seed test accounts** to create:
 
-- Generates a small `audio/wav` file in memory
-- Uploads it to MinIO
-- Creates a geofence near your location
-- Creates a published geo-audio
-- Creates a published one-stop tour
+| Email | Password | Use |
+|-------|----------|-----|
+| creator@test.com | creator123 | Creator mode |
+| listener@test.com | listener123 | Listener mode |
+
+Use the **Creator | Listener** toggle on the login page to choose which view to enter after login. You can switch modes anytime via the nav.
+
+## Seed demo content
+
+The Creator UI has **Seed example** which creates:
+
+- A 2s tone, geofence at your location (10m radius), published geo-audio + tour
 
 Flow:
 
-1. `http://localhost:3000/login` → register
-2. `http://localhost:3000/creator` → Enable creator mode
-3. Click **Seed local example**
-4. `http://localhost:3000/listen` → Share GPS or set Dev override → play
+1. Log in as creator@test.com
+2. `http://localhost:3000/creator` → Enable creator mode → **Seed example**
+3. `http://localhost:3000/listen` → Log in as listener@test.com → Share GPS or use Dev override → tap map marker → Open → Check & play
 
 ## Common problems
 

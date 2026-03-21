@@ -8,7 +8,7 @@ This MVP is built as a web app + API, but it is designed so it can be turned int
 
 ## Components
 
-- **`apps/web`** (Next.js): Listener + Creator UI
+- **`apps/web`** (Next.js): Listener + Creator UI, Google Maps (click-to-place geofences, map markers with info popups)
 - **`apps/api`** (Fastify): auth, geofence checks, tour management, S3/MinIO signing
 - **Postgres + PostGIS**: stores geofences, tours, and metadata; performs spatial queries
 - **MinIO (S3)**: stores audio objects; the API issues short-lived signed URLs

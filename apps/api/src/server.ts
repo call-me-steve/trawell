@@ -7,6 +7,7 @@ import { authPlugin } from "./http/authPlugin.js";
 import { authRoutes } from "./routes/auth.js";
 import { creatorRoutes } from "./routes/creator.js";
 import { listenerRoutes } from "./routes/listener.js";
+import { devRoutes } from "./routes/dev.js";
 import { dbHealth } from "./db/health.js";
 
 const app = Fastify({
@@ -35,6 +36,7 @@ app.get("/health", async () => ({ ok: true, db: await dbHealth() }));
 await app.register(authRoutes, { prefix: "/auth" });
 await app.register(creatorRoutes, { prefix: "/creator" });
 await app.register(listenerRoutes);
+await app.register(devRoutes, { prefix: "/dev" });
 
 app.setErrorHandler(async (err, req, reply) => {
   const statusCode = (err as any).statusCode ?? 500;

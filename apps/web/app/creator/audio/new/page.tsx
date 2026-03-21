@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { apiFetch } from "../../../lib/api";
 import { getAccessToken } from "../../../lib/authStore";
+import { Nav } from "../../../components/Nav";
 
 export default function CreatorUploadPage() {
   const [title, setTitle] = useState("");
@@ -47,54 +48,81 @@ export default function CreatorUploadPage() {
     }
   }
 
+  async function useSample() {
+    setError(null);
+    setBusy(true);
+    try {
+      const data = (await apiFetch("/creator/dev/sample-audio", { method: "POST", headers: authHeader })) as any;
+      setTitle("Sample: 2s tone");
+      setDescription("Quick test audio.");
+      setAudioAssetId(String(data.audioId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <main className="space-y-4">
-      <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-semibold">Upload audio</h1>
-        <a className="text-sm text-zinc-200 underline" href="/creator">
-          Back
-        </a>
-      </div>
+    <main className="min-h-screen px-4 pb-8">
+      <Nav />
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-semibold">🎵 Upload audio</h1>
+          <a href="/creator" className="text-sm text-zinc-400 underline">
+            ← Back
+          </a>
+        </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-        <label className="block space-y-1">
-          <div className="text-sm text-zinc-300">Title</div>
-          <input
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </label>
-        <label className="block space-y-1">
-          <div className="text-sm text-zinc-300">Description</div>
-          <textarea
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-          />
-        </label>
-        <label className="block space-y-1">
-          <div className="text-sm text-zinc-300">Audio file</div>
-          <input type="file" accept="audio/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        </label>
+        <p className="text-sm text-zinc-400">Upload a file from your machine, or use a 2s sample for quick testing.</p>
 
-        <button
-          onClick={upload}
-          disabled={busy || !title || !file}
-          className="rounded-lg bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-40"
-        >
-          {busy ? "Uploading…" : "Upload"}
-        </button>
-
-        {audioAssetId ? (
-          <div className="text-sm text-zinc-200">
-            Uploaded. Audio asset id: <span className="font-mono">{audioAssetId}</span>
+        <div className="rounded border border-zinc-700 bg-black/40 p-4 space-y-3">
+          <label className="block">
+            <span className="text-sm text-zinc-400">Title</span>
+            <input
+              className="mt-1 w-full rounded border border-zinc-600 bg-black px-3 py-2 text-white"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-zinc-400">Description</span>
+            <textarea
+              className="mt-1 w-full rounded border border-zinc-600 bg-black px-3 py-2 text-white"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-zinc-400">Audio file (from your machine)</span>
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="mt-1 block w-full text-sm text-zinc-400 file:mr-2 file:rounded file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-black"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={upload}
+              disabled={busy || !title || !file}
+              className="rounded bg-white px-3 py-2 text-sm font-medium text-black disabled:opacity-40"
+            >
+              {busy ? "…" : "Upload"}
+            </button>
+            <button onClick={useSample} disabled={busy} className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Use sample
+            </button>
           </div>
-        ) : null}
-        {error ? <div className="text-sm text-red-300">{error}</div> : null}
+          {audioAssetId && (
+            <div className="text-sm text-zinc-400">
+              ✓ Audio ID: <code className="text-zinc-300">{audioAssetId}</code>
+            </div>
+          )}
+          {error && <div className="text-sm text-red-400">{error}</div>}
+        </div>
       </div>
     </main>
   );
 }
-

@@ -6,6 +6,72 @@ import { presignGetObject } from "../s3/presign.js";
 export const listenerRoutes: FastifyPluginAsync = async (app) => {
   app.get("/", async () => ({ ok: true }));
 
+  app.get("/map-items", async (req) => {
+    const q = req.query as any as { lat?: string; lng?: string; radius?: string };
+    const lat = Number(q.lat);
+    const lng = Number(q.lng);
+    const radius = Number(q.radius ?? "5000");
+    LocationSchema.parse({ lat, lng });
+    if (!Number.isFinite(radius) || radius <= 0 || radius > 50_000) {
+      const err = new Error("Invalid radius");
+      (err as any).statusCode = 400;
+      throw err;
+    }
+    const res = await pool.query(
+      `
+      select
+        ga.id as geo_audio_id,
+        aa.title,
+        aa.description,
+        g.radius_m,
+        ST_Y(g.center_geog::geometry) as lat,
+        ST_X(g.center_geog::geometry) as lng,
+        coalesce(cp.display_name, u.email) as author
+      from geo_audio ga
+      join audio_assets aa on aa.id = ga.audio_asset_id
+      join users u on u.id = aa.owner_user_id
+      left join creator_profiles cp on cp.user_id = u.id
+      join geofences g on g.id = ga.geofence_id
+      where ga.published_at is not null
+        and ga.visibility = 'public'
+        and ST_DWithin(g.center_geog, ST_SetSRID(ST_MakePoint($1,$2),4326)::geography, $3)
+      order by ST_Distance(g.center_geog, ST_SetSRID(ST_MakePoint($1,$2),4326)::geography)
+      limit 100
+      `,
+      [lng, lat, radius]
+    );
+    return { items: res.rows };
+  });
+
+  app.get("/geo-audio/:id", async (req) => {
+    const { id } = req.params as any as { id: string };
+    const res = await pool.query(
+      `
+      select
+        ga.id as geo_audio_id,
+        aa.title,
+        aa.description,
+        g.radius_m,
+        ST_Y(g.center_geog::geometry) as lat,
+        ST_X(g.center_geog::geometry) as lng,
+        coalesce(cp.display_name, u.email) as author
+      from geo_audio ga
+      join audio_assets aa on aa.id = ga.audio_asset_id
+      join users u on u.id = aa.owner_user_id
+      left join creator_profiles cp on cp.user_id = u.id
+      join geofences g on g.id = ga.geofence_id
+      where ga.id = $1 and ga.published_at is not null and ga.visibility in ('public','unlisted')
+      `,
+      [id]
+    );
+    if (res.rowCount === 0) {
+      const err = new Error("Not found");
+      (err as any).statusCode = 404;
+      throw err;
+    }
+    return res.rows[0];
+  });
+
   app.get("/nearby", async (req) => {
     const q = req.query as any as { lat?: string; lng?: string; radius?: string };
     const lat = Number(q.lat);

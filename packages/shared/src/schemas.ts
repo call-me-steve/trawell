@@ -21,7 +21,7 @@ export const LocationSchema = z.object({
 export const CreateGeofenceSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   center: LocationSchema,
-  radiusM: z.number().int().min(5).max(50_000),
+  radiusM: z.number().int().min(1).max(50_000).default(10),
 });
 
 export const InitAudioUploadSchema = z.object({

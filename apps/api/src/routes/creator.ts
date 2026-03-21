@@ -11,7 +11,7 @@ import { pool } from "../db/pool.js";
 import { requireCreator } from "../http/authPlugin.js";
 import { presignPutObject } from "../s3/presign.js";
 import { env } from "../env.js";
-import { seedExampleForUser } from "../dev/seed.js";
+import { seedExampleForUser, createSampleAudio } from "../dev/seed.js";
 
 export const creatorRoutes: FastifyPluginAsync = async (app) => {
   app.post("/profile/become", async (req) => {
@@ -43,6 +43,17 @@ export const creatorRoutes: FastifyPluginAsync = async (app) => {
     }
     const seeded = await seedExampleForUser({ userId: req.user.id, lat, lng });
     return { ok: true, seeded };
+  });
+
+  app.post("/dev/sample-audio", async (req) => {
+    requireCreator(req);
+    if (env.NODE_ENV !== "development") {
+      const err = new Error("Not available");
+      (err as any).statusCode = 404;
+      throw err;
+    }
+    const { audioId } = await createSampleAudio({ userId: req.user.id });
+    return { ok: true, audioId };
   });
 
   app.post("/geofences", async (req) => {

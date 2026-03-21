@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { apiFetch } from "../../../lib/api";
 import { getAccessToken } from "../../../lib/authStore";
+import { Nav } from "../../../components/Nav";
 
 export default function CreatorTourPage() {
   const [title, setTitle] = useState("");
@@ -10,7 +11,6 @@ export default function CreatorTourPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [tourId, setTourId] = useState<string | null>(null);
-
   const [geoAudioId, setGeoAudioId] = useState("");
   const [sortOrder, setSortOrder] = useState("0");
 
@@ -68,84 +68,86 @@ export default function CreatorTourPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-semibold">Create tour</h1>
-        <a className="text-sm text-zinc-200 underline" href="/creator">
-          Back
-        </a>
-      </div>
-
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-        <label className="block space-y-1">
-          <div className="text-sm text-zinc-300">Title</div>
-          <input
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </label>
-        <label className="block space-y-1">
-          <div className="text-sm text-zinc-300">Description</div>
-          <textarea
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-          />
-        </label>
-        <button
-          onClick={createTour}
-          disabled={busy || !title}
-          className="rounded-lg bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-40"
-        >
-          {busy ? "Working…" : "Create tour"}
-        </button>
-        {tourId ? (
-          <div className="text-sm text-zinc-200">
-            Tour id: <span className="font-mono">{tourId}</span>
-          </div>
-        ) : null}
-      </div>
-
-      {tourId ? (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-          <div className="text-sm text-zinc-300">Add stop (paste a `geo_audio_id` you created)</div>
-          <div className="grid gap-3 md:grid-cols-3">
-            <input
-              className="md:col-span-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600 font-mono text-sm"
-              value={geoAudioId}
-              onChange={(e) => setGeoAudioId(e.target.value)}
-              placeholder="geo_audio_id"
-            />
-            <input
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              placeholder="sort order"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={addStop}
-              disabled={busy || !geoAudioId}
-              className="rounded-lg bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-40"
-            >
-              Add stop
-            </button>
-            <button
-              onClick={publishTour}
-              disabled={busy}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100 disabled:opacity-40"
-            >
-              Publish tour
-            </button>
-          </div>
+    <main className="min-h-screen px-4 pb-8">
+      <Nav />
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-semibold">🗺️ Create tour</h1>
+          <a href="/creator" className="text-sm text-zinc-400 underline">
+            ← Back
+          </a>
         </div>
-      ) : null}
 
-      {error ? <div className="text-sm text-red-300">{error}</div> : null}
+        <div className="rounded border border-zinc-700 bg-black/40 p-4 space-y-3">
+          <label className="block">
+            <span className="text-sm text-zinc-400">Title</span>
+            <input
+              className="mt-1 w-full rounded border border-zinc-600 bg-black px-3 py-2 text-white"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-zinc-400">Description</span>
+            <textarea
+              className="mt-1 w-full rounded border border-zinc-600 bg-black px-3 py-2 text-white"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
+          </label>
+          <button
+            onClick={createTour}
+            disabled={busy || !title}
+            className="rounded bg-white px-3 py-2 text-sm font-medium text-black disabled:opacity-40"
+          >
+            {busy ? "…" : "Create tour"}
+          </button>
+          {tourId && (
+            <div className="text-sm text-zinc-400">
+              ✓ Tour ID: <code className="text-zinc-300">{tourId}</code>
+            </div>
+          )}
+        </div>
+
+        {tourId && (
+          <div className="rounded border border-zinc-700 bg-black/40 p-4 space-y-3">
+            <div className="text-sm text-zinc-400">Add stop (paste geo_audio_id)</div>
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+              <input
+                className="w-full rounded border border-zinc-600 bg-black px-3 py-2 font-mono text-sm text-white"
+                value={geoAudioId}
+                onChange={(e) => setGeoAudioId(e.target.value)}
+                placeholder="geo_audio_id"
+              />
+              <input
+                className="rounded border border-zinc-600 bg-black px-3 py-2 text-sm text-white w-20"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                placeholder="0"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={addStop}
+                  disabled={busy || !geoAudioId}
+                  className="rounded bg-white px-3 py-2 text-sm font-medium text-black disabled:opacity-40"
+                >
+                  Add
+                </button>
+                <button
+                  onClick={publishTour}
+                  disabled={busy}
+                  className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300"
+                >
+                  Publish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {error && <div className="text-sm text-red-400">{error}</div>}
+      </div>
     </main>
   );
 }
-

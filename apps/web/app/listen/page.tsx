@@ -1,21 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "../lib/api";
 import { getAccessToken } from "../lib/authStore";
+import { Nav } from "../components/Nav";
+import { MapView } from "../components/MapView";
 
-type NearbyGeoAudio = {
+type MapItem = {
   geo_audio_id: string;
   title: string;
   description: string | null;
-  distance_m: number;
   radius_m: number;
+  lat: number;
+  lng: number;
+  author: string | null;
 };
 
 export default function ListenPage() {
+  const router = useRouter();
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [nearby, setNearby] = useState<NearbyGeoAudio[]>([]);
+  const [items, setItems] = useState<MapItem[]>([]);
   const [busy, setBusy] = useState(false);
   const [overrideLat, setOverrideLat] = useState("");
   const [overrideLng, setOverrideLng] = useState("");
@@ -31,7 +37,7 @@ export default function ListenPage() {
   async function requestLocation() {
     setError(null);
     if (!canUseGeo) {
-      setError("Geolocation is not available in this browser.");
+      setError("Geolocation not available");
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -46,7 +52,7 @@ export default function ListenPage() {
     const lat = Number(overrideLat);
     const lng = Number(overrideLng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      setError("Invalid override lat/lng");
+      setError("Invalid lat/lng");
       return;
     }
     setPos({ lat, lng });
@@ -57,104 +63,84 @@ export default function ListenPage() {
     (async () => {
       setBusy(true);
       try {
-        const data = (await apiFetch(`/nearby?lat=${pos.lat}&lng=${pos.lng}&radius=3000`, {
+        const data = (await apiFetch(`/map-items?lat=${pos.lat}&lng=${pos.lng}&radius=5000`, {
           headers: authHeader,
         })) as any;
-        setNearby((data.geoAudio ?? []) as NearbyGeoAudio[]);
+        setItems((data.items ?? []) as MapItem[]);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load nearby");
+        setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
         setBusy(false);
       }
     })();
   }, [pos, authHeader]);
 
-  return (
-    <main className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Listener</h1>
-          <p className="text-zinc-300">Share GPS, discover nearby audio, and listen only when you’re there.</p>
-        </div>
-        <a className="text-sm text-zinc-200 underline" href="/">
-          Back
-        </a>
-      </div>
+  function onItemSelect(item: MapItem) {
+    const q = pos ? `?lat=${pos.lat}&lng=${pos.lng}` : "";
+    router.push(`/listen/${item.geo_audio_id}${q}`);
+  }
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-        <div className="text-sm text-zinc-300">
-          Location:{" "}
-          {pos ? (
-            <span className="text-zinc-100">
-              {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
-            </span>
-          ) : (
-            <span className="text-zinc-500">not shared</span>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={requestLocation}
-            className="rounded-lg bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950"
-          >
-            Share GPS location
-          </button>
-          <a
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100"
-            href="/login"
-          >
-            Log in
-          </a>
-        </div>
-        {isDev ? (
-          <div className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3 space-y-2">
-            <div className="text-xs font-medium text-zinc-300">Dev: location override</div>
-            <div className="grid gap-2 md:grid-cols-3">
+  const center = pos ?? { lat: 48.8566, lng: 2.3522 };
+
+  return (
+    <main className="min-h-screen px-4 pb-8">
+      <Nav />
+      <div className="space-y-4">
+        <h1 className="text-xl font-semibold">🎧 Listener</h1>
+        <p className="text-sm text-zinc-400">See spots on the map. Tap a marker for author & description. Play only when you’re inside the radius (10m).</p>
+
+        <div className="rounded border border-zinc-700 bg-black/40 p-4 space-y-3">
+          <div className="text-sm text-zinc-400">
+            Location: {pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : "not set"}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={requestLocation} className="rounded bg-white px-3 py-2 text-sm font-medium text-black">
+              Share GPS
+            </button>
+            <a href="/login" className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Log in
+            </a>
+          </div>
+          {isDev && (
+            <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
               <input
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600 text-sm"
+                className="rounded border border-zinc-600 bg-black px-3 py-2 text-sm text-white"
                 value={overrideLat}
                 onChange={(e) => setOverrideLat(e.target.value)}
                 placeholder="lat"
               />
               <input
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600 text-sm"
+                className="rounded border border-zinc-600 bg-black px-3 py-2 text-sm text-white"
                 value={overrideLng}
                 onChange={(e) => setOverrideLng(e.target.value)}
                 placeholder="lng"
               />
-              <button
-                onClick={applyOverride}
-                className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100"
-              >
-                Set location
+              <button onClick={applyOverride} className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+                Set
               </button>
             </div>
-          </div>
-        ) : null}
-        {error ? <div className="text-sm text-red-300">{error}</div> : null}
-      </div>
-
-      <section className="space-y-2">
-        <h2 className="text-lg font-medium">Nearby audio</h2>
-        {busy ? <div className="text-sm text-zinc-400">Loading…</div> : null}
-        <div className="grid gap-3">
-          {nearby.map((x) => (
-            <a
-              key={x.geo_audio_id}
-              className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 hover:bg-zinc-900/70"
-              href={`/listen/${x.geo_audio_id}${pos ? `?lat=${pos.lat}&lng=${pos.lng}` : ""}`}
-            >
-              <div className="font-medium">{x.title}</div>
-              <div className="mt-1 text-sm text-zinc-300 line-clamp-2">{x.description ?? "—"}</div>
-              <div className="mt-2 text-xs text-zinc-400">
-                {Math.round(x.distance_m)}m away · geofence radius {x.radius_m}m
-              </div>
-            </a>
-          ))}
-          {!busy && nearby.length === 0 ? <div className="text-sm text-zinc-400">No public audio nearby.</div> : null}
+          )}
+          {error && <div className="text-sm text-red-400">{error}</div>}
         </div>
-      </section>
+
+        {busy && <div className="text-sm text-zinc-500">Loading map…</div>}
+
+        <MapView
+          center={center}
+          items={items}
+          userPos={pos}
+          onItemSelect={onItemSelect}
+          className="h-[360px] w-full"
+        />
+
+        {items.length > 0 && (
+          <div className="rounded border border-zinc-700 p-3">
+            <div className="text-sm text-zinc-400">
+              {items.length} spot{items.length !== 1 ? "s" : ""} near you — tap map markers for details
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
-

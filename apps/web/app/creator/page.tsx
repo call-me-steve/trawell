@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { getAccessToken } from "../lib/authStore";
+import { Nav } from "../components/Nav";
 
 export default function CreatorPage() {
   const [error, setError] = useState<string | null>(null);
@@ -43,67 +44,47 @@ export default function CreatorPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Creator</h1>
-          <p className="text-zinc-300">Upload audio, attach it to a geofence, and build tours.</p>
-        </div>
-        <a className="text-sm text-zinc-200 underline" href="/">
-          Back
-        </a>
-      </div>
+    <main className="min-h-screen px-4 pb-8">
+      <Nav />
+      <div className="space-y-4">
+        <h1 className="text-xl font-semibold">📍 Creator</h1>
+        <p className="text-sm text-zinc-400">Upload audio, place on map, build tours.</p>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-        <div className="text-sm text-zinc-300">
-          First, log in. Then you can enable creator mode and start uploading.
-        </div>
-        <div className="flex gap-2">
-          <a className="rounded-lg bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950" href="/login">
-            Log in
-          </a>
-          <button
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100"
-            onClick={becomeCreator}
-          >
-            Enable creator mode
-          </button>
-          <button
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100"
-            onClick={seedExample}
-          >
-            Seed local example
-          </button>
-          <a className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100" href="/creator/audio/new">
-            Upload audio
-          </a>
-          <a className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100" href="/creator/geofences/new">
-            Create geofence
-          </a>
-          <a className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100" href="/creator/geo-audio/new">
-            Attach geo-audio
-          </a>
-          <a className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100" href="/creator/tours/new">
-            Create tour
-          </a>
-        </div>
-        {seedInfo?.seeded ? (
-          <div className="text-xs text-zinc-300 space-y-1">
-            <div>
-              Seeded geo audio: <span className="font-mono">{seedInfo.seeded.geoAudioId}</span>
-            </div>
-            <div>
-              Seed location:{" "}
-              <span className="font-mono">
-                {Number(seedInfo.seeded.lat).toFixed(5)},{Number(seedInfo.seeded.lng).toFixed(5)}
-              </span>
-            </div>
-            <div className="text-zinc-400">Go to Listener → Share GPS near this point to test playback.</div>
+        <div className="rounded border border-zinc-700 bg-black/40 p-4 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <a href="/login" className="rounded bg-white px-3 py-2 text-sm font-medium text-black">
+              Log in
+            </a>
+            <button onClick={becomeCreator} className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Enable creator mode
+            </button>
+            <button onClick={seedExample} className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Seed example
+            </button>
           </div>
-        ) : null}
-        {error ? <div className="text-sm text-red-300">{error}</div> : null}
+          <div className="flex flex-wrap gap-2">
+            <a href="/creator/audio/new" className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Upload audio
+            </a>
+            <a href="/creator/geofences/new" className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Create geofence
+            </a>
+            <a href="/creator/geo-audio/new" className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Attach geo-audio
+            </a>
+            <a href="/creator/tours/new" className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300">
+              Create tour
+            </a>
+          </div>
+          {seedInfo?.seeded && (
+            <div className="text-sm text-zinc-400 space-y-1 pt-2 border-t border-zinc-700">
+              <div>✓ Seeded at {Number(seedInfo.seeded.lat).toFixed(5)}, {Number(seedInfo.seeded.lng).toFixed(5)}</div>
+              <div className="text-xs">Go to Listener → Share GPS near that point to test.</div>
+            </div>
+          )}
+          {error && <div className="text-sm text-red-400">{error}</div>}
+        </div>
       </div>
     </main>
   );
 }
-

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { apiFetch } from "../../../lib/api";
 import { getAccessToken } from "../../../lib/authStore";
+import { Nav } from "../../../components/Nav";
 
 export default function CreatorAttachGeoAudioPage() {
   const [audioAssetId, setAudioAssetId] = useState("");
@@ -48,65 +49,67 @@ export default function CreatorAttachGeoAudioPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <div className="flex items-start justify-between">
-        <h1 className="text-2xl font-semibold">Attach audio to geofence</h1>
-        <a className="text-sm text-zinc-200 underline" href="/creator">
-          Back
-        </a>
-      </div>
-
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-        <input
-          className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600 font-mono text-sm"
-          value={audioAssetId}
-          onChange={(e) => setAudioAssetId(e.target.value)}
-          placeholder="audio_asset_id"
-        />
-        <input
-          className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600 font-mono text-sm"
-          value={geofenceId}
-          onChange={(e) => setGeofenceId(e.target.value)}
-          placeholder="geofence_id"
-        />
-        <label className="block space-y-1">
-          <div className="text-sm text-zinc-300">Visibility</div>
-          <select
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 outline-none focus:border-zinc-600"
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value as any)}
-          >
-            <option value="private">private</option>
-            <option value="unlisted">unlisted</option>
-            <option value="public">public</option>
-          </select>
-        </label>
-
-        <div className="flex gap-2">
-          <button
-            onClick={attach}
-            disabled={busy || !audioAssetId || !geofenceId}
-            className="rounded-lg bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-40"
-          >
-            {busy ? "Working…" : "Attach"}
-          </button>
-          <button
-            onClick={publish}
-            disabled={busy || !geoAudioId}
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100 disabled:opacity-40"
-          >
-            Publish geo-audio
-          </button>
+    <main className="min-h-screen px-4 pb-8">
+      <Nav />
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-semibold">🔗 Attach audio to geofence</h1>
+          <a href="/creator" className="text-sm text-zinc-400 underline">
+            ← Back
+          </a>
         </div>
 
-        {geoAudioId ? (
-          <div className="text-sm text-zinc-200">
-            Geo-audio id: <span className="font-mono">{geoAudioId}</span>
+        <p className="text-sm text-zinc-400">Paste audio & geofence IDs from Upload and Create geofence.</p>
+
+        <div className="rounded border border-zinc-700 bg-black/40 p-4 space-y-3">
+          <input
+            className="w-full rounded border border-zinc-600 bg-black px-3 py-2 font-mono text-sm text-white"
+            value={audioAssetId}
+            onChange={(e) => setAudioAssetId(e.target.value)}
+            placeholder="audio_asset_id"
+          />
+          <input
+            className="w-full rounded border border-zinc-600 bg-black px-3 py-2 font-mono text-sm text-white"
+            value={geofenceId}
+            onChange={(e) => setGeofenceId(e.target.value)}
+            placeholder="geofence_id"
+          />
+          <label className="block">
+            <span className="text-sm text-zinc-400">Visibility</span>
+            <select
+              className="mt-1 w-full rounded border border-zinc-600 bg-black px-3 py-2 text-white"
+              value={visibility}
+              onChange={(e) => setVisibility(e.target.value as any)}
+            >
+              <option value="private">private</option>
+              <option value="unlisted">unlisted</option>
+              <option value="public">public</option>
+            </select>
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={attach}
+              disabled={busy || !audioAssetId || !geofenceId}
+              className="rounded bg-white px-3 py-2 text-sm font-medium text-black disabled:opacity-40"
+            >
+              {busy ? "…" : "Attach"}
+            </button>
+            <button
+              onClick={publish}
+              disabled={busy || !geoAudioId}
+              className="rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-300"
+            >
+              Publish
+            </button>
           </div>
-        ) : null}
-        {error ? <div className="text-sm text-red-300">{error}</div> : null}
+          {geoAudioId && (
+            <div className="text-sm text-zinc-400">
+              ✓ Geo-audio ID: <code className="text-zinc-300">{geoAudioId}</code>
+            </div>
+          )}
+          {error && <div className="text-sm text-red-400">{error}</div>}
+        </div>
       </div>
     </main>
   );
 }
-

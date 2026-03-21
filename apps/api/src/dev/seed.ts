@@ -42,7 +42,7 @@ export async function seedExampleForUser(params: { userId: string; lat: number; 
     await pool.query(
       `insert into geofences(id, owner_user_id, name, center_geog, radius_m)
        values ($1,$2,$3, ST_SetSRID(ST_MakePoint($4,$5),4326)::geography, $6)`,
-      [geofenceId, params.userId, "Seed geofence", params.lng, params.lat, 250]
+      [geofenceId, params.userId, "Seed geofence", params.lng, params.lat, 10]
     );
 
     await pool.query(
@@ -70,5 +70,28 @@ export async function seedExampleForUser(params: { userId: string; lat: number; 
   }
 
   return { audioId, geofenceId, geoAudioId, tourId, lat: params.lat, lng: params.lng };
+}
+
+export async function createSampleAudio(params: { userId: string }) {
+  const wav = makeSineWav({ seconds: 2.0, freqHz: 440 });
+  const audioId = crypto.randomUUID();
+  const storageKey = `${params.userId}/sample-${audioId}.wav`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: storageKey,
+      ContentType: "audio/wav",
+      Body: wav,
+    })
+  );
+
+  await pool.query(
+    `insert into audio_assets(id, owner_user_id, title, description, mime_type, storage_bucket, storage_key)
+     values ($1,$2,$3,$4,$5,$6,$7)`,
+    [audioId, params.userId, "Sample: 2s tone", "Quick test audio.", "audio/wav", env.S3_BUCKET, storageKey]
+  );
+
+  return { audioId };
 }
 
